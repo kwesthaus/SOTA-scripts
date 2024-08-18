@@ -67,7 +67,8 @@ idx = 0
 # skip = 1
 for activator in activators_raw:
     idx += 1
-    call = activator['Callsign']
+    # remove any postfixes, e.g. N1WGU/P
+    call = activator['Callsign'].split('/')[0]
     # if call != 'kj7knr' and skip:
     #     continue
     # elif call == 'kj7knr':
