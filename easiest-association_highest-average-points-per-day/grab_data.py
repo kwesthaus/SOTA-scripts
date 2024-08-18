@@ -8,6 +8,7 @@ import json
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-a', '--association-code', default='W7W')
+parser.add_argument('-s', '--skip-to-call',     default='')
 parser.add_argument('-r', '--rate-limit',       default=1, type=int)
 args = parser.parse_args()
 
@@ -64,16 +65,18 @@ activators_raw = r2.json()
 total = len(activators_raw)
 print(f"Starting to download logs for each of the {total} activators with home association set to {args.association_code}")
 idx = 0
-# skip = 1
+found = False
 for activator in activators_raw:
     idx += 1
     # remove any postfixes, e.g. N1WGU/P
     call = activator['Callsign'].split('/')[0]
-    # if call != 'kj7knr' and skip:
-    #     continue
-    # elif call == 'kj7knr':
-    #     print('continuing from kj7knr')
-    #     skip = 0
+    if args.skip_to_call:
+        if not found:
+            if call != args.skip_to_call:
+                continue
+            else:
+                print(f"continuing from {args.skip_to_call}")
+                found = True
 
     # rate limit ourselves to avoid hitting the servers too hard
     time.sleep(args.rate_limit)
