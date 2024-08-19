@@ -12,7 +12,7 @@ should I also split it up by year?
 
 example outputs:
 
-![Washington](W7W_2024-08-16.png)
-![Oregon](W7O_2024-08-16.png)
-![Arizona](W7A_2024-08-16.png)
+![Washington](output/W7W_2024-08-16.png)
+![Oregon](output/W7O_2024-08-16.png)
+![Arizona](output/W7A_2024-08-16.png)
 
