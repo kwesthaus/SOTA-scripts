@@ -62,9 +62,9 @@ histogram.set_xlabel("Average Points per Day")
 histogram.set_ylabel("Count of Activators")
 
 min_ylim, max_ylim = plt.ylim()
-histogram.axvline(med_all, color='xkcd:bright red', label=f"Median: {med_all}")
-histogram.axvline(med_nonzero, color='xkcd:bright yellow', label=f"Median (excluding activators with average of 0): {med_nonzero}")
-histogram.axvline(med_twoplusdays, color='xkcd:bright green', label=f"Median (excluding activators with less than 2 days): {med_twoplusdays}")
+histogram.axvline(med_all, color='xkcd:bright red', label=f"Median ({len(avgs_all)} activators): {med_all}")
+histogram.axvline(med_nonzero, color='xkcd:bright yellow', label=f"Median (excluding activators with average of 0) ({len(avgs_nonzero)}): {med_nonzero}")
+histogram.axvline(med_twoplusdays, color='xkcd:bright green', label=f"Median (excluding activators with less than 2 days) ({len(avgs_twoplusdays)}): {med_twoplusdays}")
 
 legend.legend()
 
