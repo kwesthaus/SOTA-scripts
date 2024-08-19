@@ -51,17 +51,22 @@ if not association_id:
 
 
 
-url = f"https://api-db.sota.org.uk/admin/activator_roll?associationID={association_id}"
-print(url)
-r2 = requests.get(url)
-print(f"\t{r2.status_code}")
+# if we are continuing a previous download run, don't download the activator roll again in case it has changed
+if not args.skip_to_call:
+    url = f"https://api-db.sota.org.uk/admin/activator_roll?associationID={association_id}"
+    print(url)
+    r2 = requests.get(url)
+    print(f"\t{r2.status_code}")
 
-with open(f"./data/{args.association_code}/activator_roll.json", 'w') as f:
-    f.write(r2.text)
+    with open(f"./data/{args.association_code}/activator_roll.json", 'w') as f:
+        f.write(r2.text)
+
+activators_raw = ''
+with open(f"./data/{args.association_code}/activator_roll.json", 'r') as f:
+    activators_raw = json.load(f)
 
 
 
-activators_raw = r2.json()
 total = len(activators_raw)
 print(f"Starting to download logs for each of the {total} activators with home association set to {args.association_code}")
 idx = 0
