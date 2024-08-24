@@ -9,9 +9,10 @@ import argparse
 import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-y', '--year',             default=2024, type=int)
-parser.add_argument('-a', '--association',      default='W7W')
-parser.add_argument('-l', '--leaderboard-size', default=15, type=int)
+parser.add_argument('-y', '--year',                 default=2024, type=int)
+parser.add_argument('-a', '--association-code',     default='W7W')
+parser.add_argument('-x', '--hf-instead-of-vhf',    action='store_true')
+parser.add_argument('-l', '--leaderboard-size',     default=15, type=int)
 args = parser.parse_args()
 
 # dictionary from callsign to dictionary
@@ -23,20 +24,20 @@ final_date = datetime.datetime.utcnow().date() + datetime.timedelta(days=1) - da
 final_dayofyear = final_date.days
 idx = 1
 
-files = os.listdir('./data/by-call/')
+files = os.listdir(f"./data/{args.association_code}/{args.year}/by-call/")
 # no longer needed because we now sort after creating the dictionary but before adding to the plot
 # files.sort()
 for filename in files:
     total_points = 0
 
     # open file, create corresponding dictionary key
-    with open(F"./data/by-call/{filename}", 'r') as f:
+    with open(f"./data/{args.association_code}/{args.year}/by-call/{filename}", 'r') as f:
         curr_json = json.load(f)
-        curr_call = curr_json[0]['OwnCallsign']
+        curr_call = curr_json['Callsign']
         callsigns[curr_call] = {}
 
     # we rely on the sota api giving us activations in date order so that keeping track of the number of points we've seen so far is monotonically increasing
-    for activation in curr_json:
+    for activation in curr_json['Activations']:
         # TODO: abstract this out to filter based on cmdline arguments
         # # exclude activations without a qualifying number of 2meter and a qualifying number of fm contacts
         # # yes, this means that you can make only 4 (2m&ssb) contacts and 4 (70cm&fm) contacts and have that count
@@ -48,16 +49,20 @@ for filename in files:
         #     print(activation)
         #     print()
         # all associations have different point rules, compare just within Washington for a level playing field
-        if activation['SummitCode'][0:3] != args.association:
+        if activation['SummitCode'][0:len(args.association_code)] != args.association_code:
             continue
-        # VHF and higher (above 23cm isn't included in the general log page)
-        # if activation['QSO6'] + activation['QSO4'] + activation['QSO2'] + activation['QSO70c'] + activation['QSO23c'] < 4:
-        #     continue
-        # 
-        # if we do it instead by removing HF contacts, we include everything above 23cm at the expense of including VLF contacts
-        # I verified that there are no VLF contacts in W7W in 2023 as of 2023-09-06, but that is not true of every year
-        if activation['QSOs'] - activation['QSO160'] - activation['QSO80'] - activation['QSO60'] - activation['QSO40'] - activation['QSO30'] - activation['QSO20'] - activation['QSO17'] - activation['QSO15'] - activation['QSO12'] - activation['QSO10'] < 4:
-            continue
+        if args.hf_instead_of_vhf:
+            if activation['QSO160'] + activation['QSO80'] + activation['QSO60'] + activation['QSO40'] + activation['QSO30'] + activation['QSO20'] + activation['QSO17'] + activation['QSO15'] + activation['QSO12'] + activation['QSO10'] < 4:
+                continue
+        else:
+            # VHF and higher (above 23cm isn't included in the general log page)
+            # if activation['QSO6'] + activation['QSO4'] + activation['QSO2'] + activation['QSO70c'] + activation['QSO23c'] < 4:
+            #     continue
+            # 
+            # if we do it instead by removing HF contacts, we include everything above 23cm at the expense of including VLF contacts
+            # I verified that there are no VLF contacts in W7W in 2023 as of 2023-09-06, but that is not true of every year
+            if activation['QSOs'] - activation['QSO160'] - activation['QSO80'] - activation['QSO60'] - activation['QSO40'] - activation['QSO30'] - activation['QSO20'] - activation['QSO17'] - activation['QSO15'] - activation['QSO12'] - activation['QSO10'] < 4:
+                continue
 
         # calculate day of year as X coordinate
         curr_raw_date = [int(x) for x in activation['ActivationDate'].split('-')]
@@ -91,10 +96,15 @@ for call in sorted_calls:
     ax.plot(days, points, label=f"{idx}. {call}: {callsigns[call][final_dayofyear]}")
     idx += 1
 
-with open("./data/date.txt", 'r') as f:
+with open(f"./data/{args.association_code}/{args.year}/date.txt", 'r') as f:
     data_as_of = f.read().strip()
 
-ax.set_title(f"{args.year} SOTA Honour Roll: {args.association} Activations Scored using only VHF-and-above Contacts (as of {data_as_of})")
+if args.hf_instead_of_vhf:
+    band_text = 'HF-and-below'
+else:
+    band_text = 'VHF-and-above'
+
+ax.set_title(f"{args.year} SOTA Honour Roll: {args.association_code} Activations Scored using only {band_text} Contacts (as of {data_as_of})")
 ax.set_xlabel("Day of Year")
 ax.set_ylabel("Points")
 fig.legend()

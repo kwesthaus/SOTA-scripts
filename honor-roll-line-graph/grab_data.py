@@ -4,9 +4,10 @@ import requests
 import time
 import datetime
 import argparse
+import json
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-a', '--association-code', default='65') # W7W
+parser.add_argument('-a', '--association-code', default='W7W')
 parser.add_argument('-y', '--year',             default='2024')
 parser.add_argument('-b', '--rf-band',          default='144MHz')
 parser.add_argument('-m', '--rf-mode',          default='all')
@@ -35,25 +36,51 @@ h = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/117.0",
 }
 
-url = f"https://api-db2.sota.org.uk/rolls/activator/{args.association_code}/{args.year}/{args.rf_band}/{args.rf_mode}"
+
+
+url = "https://api-db2.sota.org.uk/associations"
 print(url)
 r = requests.get(url)
-activators_raw = r.json()
+print(f"\t{r.status_code}")
+associations_raw = r.json()
 
+association_id = ''
+for association in associations_raw:
+    if association['code'] == args.association_code:
+        association_id = association['id']
+if not association_id:
+    print(f"Could not find association for code {args.association_code}, quitting!")
+    exit(1)
+
+
+
+url = f"https://api-db2.sota.org.uk/rolls/activator/{association_id}/{args.year}/{args.rf_band}/{args.rf_mode}"
+print(url)
+r2 = requests.get(url)
+print(f"\t{r2.status_code}")
+activators_raw = r2.json()
+total = len(activators_raw)
+print(f"Starting to download logs for each of the {total} activators on the honor roll")
+idx = 0
 for activator in activators_raw:
+    idx += 1
     # rate limit ourselves to avoid hitting the servers too hard
     time.sleep(args.rate_limit)
 
     call = activator['Callsign']
     uid = activator['UserID']
-    print(f"{call} ({uid}): {activator['totalPoints']}")
+    print(f"({idx} / {total}). {call} ({uid}): {activator['totalPoints']}")
     url = f"https://api-db2.sota.org.uk/logs/activator/{uid}/{args.year}/0"
 
-    r2 = requests.get(url, headers=h)
-    print(f"\t{r2.status_code}")
-    with open(f"./data/by-call/{call}.json", 'w') as f:
-        f.write(r2.text)
+    r3 = requests.get(url, headers=h)
+    print(f"\t{r3.status_code}")
+    if r3.status_code == 401:
+        print("Unauthorized, bearer token probably expired, quitting!")
+        exit(1)
+    activator['Activations'] = r3.json()
+    with open(f"./data/{args.association_code}/{args.year}/by-call/{call}.json", 'w') as f:
+        json.dump(activator, f)
 
-with open("./data/date.txt", 'w') as f:
+with open(f"./data/{args.association_code}/{args.year}/date.txt", 'w') as f:
     f.write(str(datetime.datetime.now()))
 
