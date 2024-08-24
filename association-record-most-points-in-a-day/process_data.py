@@ -6,18 +6,19 @@ from datetime import datetime
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-a', '--association',      default='W7W')
+parser.add_argument('-a', '--association-code', default='W7W')
 parser.add_argument('-l', '--leaderboard-size', default=10, type=int)
 args = parser.parse_args()
 
 callsigns = {}
 
-for filename in os.listdir('./data/by-call/'):
-    with open(f"./data/by-call/{filename}", 'r') as f:
+for filename in os.listdir(f"./data/{args.association_code}/by-call/"):
+    with open(f"./data/{args.association_code}/by-call/{filename}", 'r') as f:
         curr_json = json.load(f)
-        curr_call = curr_json[0]['OwnCallsign']
+        curr_call = curr_json['Callsign']
+
         callsigns[curr_call] = {}
-        for activation in curr_json:
+        for activation in curr_json['Activations']:
             filtered_time = activation['firstQSO'].replace(' ', '').replace('+', '')
             activ_date_time = f"{activation['ActivationDate']} {filtered_time}"
             activ_utc = datetime.fromisoformat(activ_date_time+'+00:00')
@@ -35,7 +36,7 @@ top_n = [(0, 'fakecall', 'fakedate')]
 
 for callsign in callsigns:
     for date in callsigns[callsign]:
-        filtered = filter(lambda a: a['SummitCode'][0:len(args.association)] == args.association, callsigns[callsign][date])
+        filtered = filter(lambda a: a['SummitCode'][0:len(args.association_code)] == args.association_code, callsigns[callsign][date])
         curr_points = sum([activation['Points'] + activation['BonusPoints'] for activation in filtered])
 
         min_points = top_n[-1][0]
