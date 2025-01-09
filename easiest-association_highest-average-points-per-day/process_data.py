@@ -26,6 +26,9 @@ for filename in os.listdir(f"./data/{args.association_code}/by-call/"):
         for activation in curr_json['Activations']:
             if activation['SummitCode'][0:len(args.association_code)] == args.association_code:
                 filtered_time = activation['firstQSO'].replace(' ', '').replace('+', '')
+                if filtered_time[-2] == ':':
+                    # only one character after the colon, somebody forgot the last minute digit
+                    filtered_time = filtered_time + '0'
                 activ_date_time = f"{activation['ActivationDate']} {filtered_time}"
                 activ_utc = datetime.fromisoformat(activ_date_time+'+00:00')
                 # assume that the time zone of the activation is the same as the time zone of the current computer
