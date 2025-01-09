@@ -51,9 +51,18 @@ for filename in os.listdir(f"./data/{args.association_code}/by-call/"):
         if len(valid_days) >= 2:
             avgs_twoplusdays.append(avg_per_day)
 
-med_all = statistics.median(avgs_all)
-med_nonzero = statistics.median(avgs_nonzero)
-med_twoplusdays = statistics.median(avgs_twoplusdays)
+if avgs_all:
+    med_all = statistics.median(avgs_all)
+else:
+    med_all = 0
+if avgs_nonzero:
+    med_nonzero = statistics.median(avgs_nonzero)
+else:
+    med_nonzero = 0
+if avgs_twoplusdays:
+    med_twoplusdays = statistics.median(avgs_twoplusdays)
+else:
+    med_twoplusdays = 0
 
 with open(f"./data/{args.association_code}/date.txt", 'r') as f:
     data_as_of = f.read().strip()
