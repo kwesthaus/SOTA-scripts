@@ -687,8 +687,8 @@ regions = [
     # counties not in any region: (?)
     # regions overlaying other regions: (none)
     # split counties: Claiborne (error), Overton (split 85.3°W)
-    {'identifier': 'W4T/CA', 'name': 'Cumberland - Appalachian Plateau',    'counties': ['TN_Overton'], 'linesplit': [[(-85.3, -89), (-85.3, 89)], 'E'], 'counties2': ['TN_Franklin', 'TN_Marion', 'TN_Bledsoe', 'TN_Cumberland', 'TN_Morgan', 'TN_Scott', 'TN_Campbell', 'TN_Sequatchie', 'TN_Fentress'] },
-    {'identifier': 'W4T/NB', 'name': 'Nashville Basin',                     'counties': ['TN_Overton'], 'linesplit': [[(-85.3, -89), (-85.3, 89)], 'W'], 'counties2': ['TN_Smith', 'TN_Cannon', 'TN_Warren', 'TN_White', 'TN_Pickett'] },
+    {'identifier': 'W4T/CA', 'name': 'Cumberland - Appalachian Plateau',    'counties': ['TN_Overton'], 'linesplit': [[(-85.3, -89), (-85.3, 89)], 'E'], 'morecounties': ['TN_Franklin', 'TN_Marion', 'TN_Bledsoe', 'TN_Cumberland', 'TN_Morgan', 'TN_Scott', 'TN_Campbell', 'TN_Sequatchie', 'TN_Fentress'] },
+    {'identifier': 'W4T/NB', 'name': 'Nashville Basin',                     'counties': ['TN_Overton'], 'linesplit': [[(-85.3, -89), (-85.3, 89)], 'W'], 'morecounties': ['TN_Smith', 'TN_Cannon', 'TN_Warren', 'TN_White', 'TN_Pickett'] },
     {'identifier': 'W4T/RV', 'name': 'Ridge and Valley',                    'counties': ['TN_Hamilton', 'TN_Rhea', 'TN_Anderson', 'TN_Roane', 'TN_Knox', 'TN_Claiborne', 'TN_Union', 'TN_Grainger', 'TN_Hancock', 'TN_Hamblen', 'TN_Hawkins', 'TN_Sullivan'] },
     {'identifier': 'W4T/SU', 'name': 'Smoky and Unaka Mountains',           'counties': ['TN_Polk', 'TN_Monroe', 'TN_Blount', 'TN_Sevier', 'TN_Cocke', 'TN_Greene', 'TN_Washington', 'TN_Unicoi', 'TN_Carter', 'TN_Johnson'] },
 
@@ -700,100 +700,125 @@ for ft in cgj["features"]:
     # e.g. { "WA_Grant": {...}, "WA_Clark": {...}, ... }
 
 
-for region in regions:
+
+def construct_hull(regionfeature, regiondef):
+    print(f'Constructing concave hull for "{regiondef['name']}"...', end='', flush=True)
+    rgrows = []
+    def is_region(row):
+        if row['RegionName'] == regiondef['name']:
+            vf = datetime.date.strptime(row['ValidFrom'], "%d/%m/%Y")
+            vt = datetime.date.strptime(row['ValidTo'], "%d/%m/%Y")
+            dt = datetime.date.today()
+            return dt < vt and dt > vf
+        return False
+    with open(sys.argv[2], 'r') as sf:
+        rd = csv.DictReader(sf)
+
+        for row in filter(is_region, rd):
+            rgrows.append(row)
+    latlonlist = [(row['Longitude'], row['Latitude']) for row in rgrows]
+    hull = shapely.concave_hull(shapely.MultiPoint(latlonlist), ratio=0.6)
+    regionfeature["geometry"] = shapely.geometry.mapping(hull)
+    print(' done')
+    return
+
+
+def construct_state(regionfeature, regiondef):
+    state = regiondef["state"]
+    counties_list = [x for x in counties_dict.keys() if x.split('_')[0] == state]
+
+    rgshp = shapely.geometry.shape(regionfeature["geometry"])
+    for county_name in counties_list:
+        countyshp = shapely.geometry.shape(counties_dict[county_name]["geometry"])
+        # print(f"about to merge {region['name']} with {county_name}")
+        rgshp = shapely.coverage_union(rgshp, countyshp)
+    regionfeature["geometry"] = shapely.geometry.mapping(rgshp)
+
+
+def construct_counties(regionfeature, regiondef):
+    counties_list = regiondef["counties"]
+    if "NScounties" in regiondef: # TODO make command line option
+        counties_list += regiondef["NScounties"]
+
+    rgshp = shapely.geometry.shape(regionfeature["geometry"])
+    for county_name in counties_list:
+        countyshp = shapely.geometry.shape(counties_dict[county_name]["geometry"])
+        # print(f"about to merge {region['name']} with {county_name}")
+        rgshp = shapely.coverage_union(rgshp, countyshp)
+    regionfeature["geometry"] = shapely.geometry.mapping(rgshp)
+
+
+def handle_linesplit(regionfeature, regiondef):
+    line = shapely.LineString(regiondef["linesplit"][0])   # 2 tuples, each one defines endpoint of a line
+    direction = regiondef["linesplit"][1]                  # 'N', 'S', 'E', or 'W'
+    rgshp = shapely.geometry.shape(regionfeature["geometry"])
+    sidea, sideb = shapely.ops.split(rgshp, line).geoms
+    keepside = rgshp
+
+    # at this point we don't know which order shapely returned the sides in (e.g. west then east, or east then west) so we examine the points to figure it out
+    idx = -1
+    if direction == 'N' or direction == 'S':
+        idx = 1 # look at the 2nd member of the tuple
+    else:
+        idx = 0 # look at the 1st member of the tuple
+
+    found = False
+    for point in sidea.exterior.coords:
+        if point[idx] == regiondef["linesplit"][0][0][idx]:
+            # this point is on the split line, it's not helpful for determining which side this polygon is on
+            print('skipping point on line')
+            continue
+        else:
+            if (direction == 'E' or direction == 'N') and point[idx] > regiondef["linesplit"][0][0][idx]:
+                found = True
+                print('keeping side a')
+                keepside = sidea
+            elif (direction == 'W' or direction == 'S') and point[idx] < regiondef["linesplit"][0][0][idx]:
+                found = True
+                print('keeping side a')
+                keepside = sidea
+            else:
+                print('keeping side b')
+                found = True
+                keepside = sideb
+            break
+    if not found:
+        print("Unable to determine which side of split to keep, quitting!")
+        exit(3)
+
+    regionfeature["geometry"] = shapely.geometry.mapping(keepside)
+
+
+def handle_morecounties(regionfeature, regiondef):
+    counties_list = regiondef["morecounties"]
+    rgshp = shapely.geometry.shape(regionfeature["geometry"])
+    for county_name in counties_list:
+        countyshp = shapely.geometry.shape(counties_dict[county_name]["geometry"])
+        # print(f"about to merge {region['name']} with {county_name}")
+        rgshp = shapely.coverage_union(rgshp, countyshp)
+    regionfeature["geometry"] = shapely.geometry.mapping(rgshp)
+
+
+
+for regiondef in regions:
     rgft = copy.deepcopy(feature_template)
-    rgft["properties"] = region
+    rgft["properties"] = regiondef
     counties_list = []
 
-    if "type" in region and region["type"] == "concave-hull":
-        print(f'Constructing concave hull for "{region['name']}"...', end='', flush=True)
-        rgrows = []
-        def is_region(row):
-            if row['RegionName'] == region['name']:
-                vf = datetime.date.strptime(row['ValidFrom'], "%d/%m/%Y")
-                vt = datetime.date.strptime(row['ValidTo'], "%d/%m/%Y")
-                dt = datetime.date.today()
-                return dt < vt and dt > vf
-            return False
-        with open(sys.argv[2], 'r') as sf:
-            rd = csv.DictReader(sf)
+    if "type" in regiondef and regiondef["type"] == "concave-hull":
+        construct_hull(rgft, regiondef)
 
-            for row in filter(is_region, rd):
-                rgrows.append(row)
-        latlonlist = [(row['Longitude'], row['Latitude']) for row in rgrows]
-        hull = shapely.concave_hull(shapely.MultiPoint(latlonlist), ratio=0.6)
-        rgft["geometry"] = shapely.geometry.mapping(hull)
-        print(' done')
+    elif "type" in regiondef and regiondef["type"] == "state":
+        construct_state(rgft, regiondef)
         
-    else:
-        if "type" in region and region["type"] == "state":
-            state = region["state"]
-            counties_list = [x for x in counties_dict.keys() if x.split('_')[0] == state]
-        elif "counties" in region:
-            counties_list = region["counties"]
-            if "NScounties" in region:
-                counties_list += region["NScounties"]
-        else:
-            print('Region definition does not have required keys, quitting!')
-            exit(2)
+    elif "counties" in regiondef:
+        construct_counties(rgft, regiondef)
 
-        rgshp = shapely.geometry.shape(rgft["geometry"])
-        for county_name in counties_list:
-            countyshp = shapely.geometry.shape(counties_dict[county_name]["geometry"])
-            # print(f"about to merge {region['name']} with {county_name}")
-            rgshp = shapely.coverage_union(rgshp, countyshp)
-        rgft["geometry"] = shapely.geometry.mapping(rgshp)
+    if "linesplit" in regiondef:
+        handle_linesplit(rgft, regiondef)
 
-        if "linesplit" in region:
-            line = shapely.LineString(region["linesplit"][0])   # 2 tuples, each one defines endpoint of a line
-            direction = region["linesplit"][1]                  # 'N', 'S', 'E', or 'W'
-            rgshp = shapely.geometry.shape(rgft["geometry"])
-            sidea, sideb = shapely.ops.split(rgshp, line).geoms
-            keepside = rgshp
-
-            # at this point we don't know which order shapely returned the sides in (e.g. west then east, or east then west) so we examine the points to figure it out
-            idx = -1
-            if direction == 'N' or direction == 'S':
-                idx = 1 # look at the 2nd member of the tuple
-            else:
-                idx = 0 # look at the 1st member of the tuple
-
-            found = False
-            for point in sidea.exterior.coords:
-                if point[idx] == region["linesplit"][0][0][idx]:
-                    # this point is on the split line, it's not helpful for determining which side this polygon is on
-                    print('skipping point on line')
-                    continue
-                else:
-                    if (direction == 'E' or direction == 'N') and point[idx] > region["linesplit"][0][0][idx]:
-                        found = True
-                        print('keeping side a')
-                        keepside = sidea
-                    elif (direction == 'W' or direction == 'S') and point[idx] < region["linesplit"][0][0][idx]:
-                        found = True
-                        print('keeping side a')
-                        keepside = sidea
-                    else:
-                        print('keeping side b')
-                        found = True
-                        keepside = sideb
-                    break
-            if not found:
-                print("Unable to determine which side of split to keep, quitting!")
-                exit(3)
-
-            rgft["geometry"] = shapely.geometry.mapping(keepside)
-
-        if "counties2" in region:
-            counties_list = region["counties2"]
-            rgshp = shapely.geometry.shape(rgft["geometry"])
-            for county_name in counties_list:
-                countyshp = shapely.geometry.shape(counties_dict[county_name]["geometry"])
-                # print(f"about to merge {region['name']} with {county_name}")
-                rgshp = shapely.coverage_union(rgshp, countyshp)
-            rgft["geometry"] = shapely.geometry.mapping(rgshp)
-
-
+    if "morecounties" in regiondef:
+        handle_morecounties(rgft, regiondef)
 
     gj_template["features"].append(rgft)
 
