@@ -3,7 +3,6 @@
 # e.g. ./convert-all-w.py ./cb_2024_us_county_5m.geojson ~/Downloads/sota-temp/summitslist_ALL-USA_2026-03-17.csv ./w-regions.geojson
 
 # TODO log/print which polygons have holes and which are multipolygons
-# TODO maybe switch from concave hull to voronoi+dissolve? this would fix overlapping by making multipolygons
 
 import sys
 import json
@@ -358,160 +357,11 @@ regions = [
     {'identifier': 'W8M/LP', 'name': 'Michigan Lower Peninsula',    'counties': ['MI_Alcona', 'MI_Allegan', 'MI_Alpena', 'MI_Antrim', 'MI_Arenac', 'MI_Barry', 'MI_Bay', 'MI_Benzie', 'MI_Berrien', 'MI_Branch', 'MI_Calhoun', 'MI_Cass', 'MI_Charlevoix', 'MI_Cheboygan', 'MI_Clare', 'MI_Clinton', 'MI_Crawford', 'MI_Eaton', 'MI_Emmet', 'MI_Genesee', 'MI_Gladwin', 'MI_Grand Traverse', 'MI_Gratiot', 'MI_Hillsdale', 'MI_Huron', 'MI_Ingham', 'MI_Ionia', 'MI_Iosco', 'MI_Isabella', 'MI_Jackson', 'MI_Kalamazoo', 'MI_Kalkaska', 'MI_Kent', 'MI_Lake', 'MI_Lapeer', 'MI_Leelanau', 'MI_Lenawee', 'MI_Livingston', 'MI_Macomb', 'MI_Manistee', 'MI_Mason', 'MI_Mecosta', 'MI_Midland', 'MI_Missaukee', 'MI_Monroe', 'MI_Montcalm', 'MI_Montmorency', 'MI_Muskegon', 'MI_Newaygo', 'MI_Oakland', 'MI_Oceana', 'MI_Ogemaw', 'MI_Osceola', 'MI_Oscoda', 'MI_Otsego', 'MI_Ottawa', 'MI_Presque Isle', 'MI_Roscommon', 'MI_Saginaw', 'MI_St. Clair', 'MI_St. Joseph', 'MI_Sanilac', 'MI_Shiawassee', 'MI_Tuscola', 'MI_Van Buren', 'MI_Washtenaw', 'MI_Wayne', 'MI_Wexford'] },
     {'identifier': 'W8M/UP', 'name': 'Michigan Upper Peninsula',    'counties': ['MI_Keweenaw', 'MI_Ontonagon', 'MI_Luce', 'MI_Schoolcraft', 'MI_Baraga', 'MI_Alger', 'MI_Iron', 'MI_Mackinac', 'MI_Gogebic', 'MI_Menominee', 'MI_Chippewa', 'MI_Delta', 'MI_Dickinson', 'MI_Marquette', 'MI_Houghton'] },
 
-    # W5A: 8 regions, 75 counties
-    # counties not in any region: (?)
-    # regions overlaying other regions: (none)
-    # split counties: (none)
-    {'identifier': 'W5A/BR', 'name': 'Buffalo River',       'type': 'concave-hull' },
-    {'identifier': 'W5A/CA', 'name': 'Caddo Mountains',     'type': 'concave-hull' },
-    {'identifier': 'W5A/CS', 'name': 'Cossatot Mountains',  'type': 'concave-hull' },
-    {'identifier': 'W5A/MA', 'name': 'Magazine Mountains',  'type': 'concave-hull' },
-    {'identifier': 'W5A/OA', 'name': 'Oak Mountains',       'type': 'concave-hull' },
-    {'identifier': 'W5A/OH', 'name': 'Ouachita Mountains',  'type': 'concave-hull' },
-    {'identifier': 'W5A/OZ', 'name': 'Ozark Mountains',     'type': 'concave-hull' },
-    {'identifier': 'W5A/PT', 'name': 'Poteau Mountains',    'type': 'concave-hull' },
-
-    # W5N: 37 regions, 33 counties
-    # counties not in any region: (?)
-    # regions overlaying other regions: (none)
-    # split counties (21): Grant, Hidalgo, Catron, Sierra, Cibola, Socorro, McKinley, Mora, Torrance, Luna, Lincoln, Otero, Rio Arriba, Taos, San Miguel, Doña Ana, Santa Fe, Sandoval, Colfax, Union, Valencia
-    {'identifier': 'W5N/AI', 'name': 'Animas Mountains',                'type': 'concave-hull' }, # 'counties': ['Hidalgo'] },
-    {'identifier': 'W5N/AP', 'name': 'Apache National Forest',          'type': 'concave-hull' }, # 'counties': ['Catron', 'Cibola'] },
-    {'identifier': 'W5N/BA', 'name': 'Bosque Del Apache NWR',           'type': 'concave-hull' }, # 'counties': ['Socorro', 'Torrance'] },
-    {'identifier': 'W5N/BL', 'name': 'Black Range',                     'type': 'concave-hull' }, # 'counties': ['Grant', 'Sierra'] },
-    {'identifier': 'W5N/BU', 'name': 'Burro Mountains',                 'type': 'concave-hull' }, # 'counties': ['Grant', 'Hidalgo', 'Catron', 'Luna'] },
-    {'identifier': 'W5N/CB', 'name': 'Caballo Mountains',               'type': 'concave-hull' }, # 'counties': ['Sierra'] },
-    {'identifier': 'W5N/CC', 'name': 'Chama Canyon',                    'type': 'concave-hull' }, # 'counties': ['Rio Arriba'] },
-    {'identifier': 'W5N/CD', 'name': 'Coronado National Forest',        'type': 'concave-hull' }, # 'counties': ['Hidalgo'] },
-    {'identifier': 'W5N/CM', 'name': 'Cimarron Range',                  'type': 'concave-hull' }, # 'counties': ['Colfax', 'Taos', 'Mora'] },
-    {'identifier': 'W5N/CN', 'name': 'Cornudas Mountains',              'type': 'concave-hull' }, # 'counties': ['Eddy', 'Otero'] },
-    {'identifier': 'W5N/CO', 'name': 'Cibola National Forest',          'type': 'concave-hull' }, # 'counties': ['Cibola', 'McKinley', 'Socorro', 'Catron'] },
-    {'identifier': 'W5N/CU', 'name': 'Chuska Mountains',                'type': 'concave-hull' }, # 'counties': ['San Juan', 'McKinley'] },
-    {'identifier': 'W5N/DA', 'name': 'Datil Mountains',                 'type': 'concave-hull' }, # 'counties': ['Catron', 'Socorro'] },
-    {'identifier': 'W5N/EL', 'name': 'Eastern New Mexico Flatlands',    'type': 'concave-hull' }, # 'counties': ['Lincoln', 'Mora', 'Torrance', 'San Miguel', 'Union', 'Guadalupe', 'Quay', 'Harding'] },
-    {'identifier': 'W5N/FL', 'name': 'Florida Mountains',               'type': 'concave-hull' }, # 'counties': ['Luna'] },
-    {'identifier': 'W5N/GF', 'name': 'Gila National Forest',            'type': 'concave-hull' }, # 'counties': ['Catron', 'Sierra'] },
-    {'identifier': 'W5N/GW', 'name': 'Gila Wilderness',                 'type': 'concave-hull' }, # 'counties': ['Catron', 'Grant'] },
-    {'identifier': 'W5N/HT', 'name': 'Hatchet Mountains',               'type': 'concave-hull' }, # 'counties': ['Hidalgo', 'Luna', 'Grant'] },
-    {'identifier': 'W5N/MG', 'name': 'Magdalena Mountains',             'type': 'concave-hull' }, # 'counties': ['Socorro', 'Sierra'] },
-    {'identifier': 'W5N/MI', 'name': 'Mimbres Mountains',               'type': 'concave-hull' }, # 'counties': ['Grant', 'Luna', 'Sierra'] },
-    {'identifier': 'W5N/MO', 'name': 'Mockingbird Mountains',           'type': 'concave-hull' }, # 'counties': ['Sierra', 'Lincoln', 'Socorro'] },
-    {'identifier': 'W5N/NL', 'name': 'Navajo Lake',                     'type': 'concave-hull' }, # 'counties': ['San Juan'] },
-    {'identifier': 'W5N/OR', 'name': 'Organ Mountains',                 'type': 'concave-hull' }, # 'counties': ['Doña Ana', 'Otero'] },
-    {'identifier': 'W5N/OT', 'name': 'Ortega Mountains',                'type': 'concave-hull' }, # 'counties': ['Rio Arriba', 'Taos'] },
-    {'identifier': 'W5N/PA', 'name': 'Pinos Altos Range',               'type': 'concave-hull' }, # 'counties': ['Grant', 'Luna'] },
-    {'identifier': 'W5N/PL', 'name': 'Peloncillo Mountains',            'type': 'concave-hull' }, # 'counties': ['Hidalgo'] },
-    {'identifier': 'W5N/PO', 'name': 'Potrillo Mountains',              'type': 'concave-hull' }, # 'counties': ['Doña Ana', 'Luna'] },
-    {'identifier': 'W5N/PW', 'name': 'Pecos Wilderness',                'type': 'concave-hull' }, # 'counties': ['Mora', 'Rio Arriba', 'Taos', 'Santa Fe', 'San Miguel'] },
-    {'identifier': 'W5N/RO', 'name': 'Robledo Mountains',               'type': 'concave-hull' }, # 'counties': ['Doña Ana', 'Luna'] },
-    {'identifier': 'W5N/SC', 'name': 'Sacramento Mountains',            'type': 'concave-hull' }, # 'counties': ['Otero', 'Lincoln', 'Chaves'] },
-    {'identifier': 'W5N/SE', 'name': 'Sierra De Las Valles Range',      'type': 'concave-hull' }, # 'counties': ['Rio Arriba', 'Sandoval', 'Santa Fe'] },
-    {'identifier': 'W5N/SG', 'name': 'Sierra Grande Range',             'type': 'concave-hull' }, # 'counties': ['Colfax', 'Union'] },
-    {'identifier': 'W5N/SI', 'name': 'Sandia Mountains',                'type': 'concave-hull' }, # 'counties': ['Bernalillo', 'Torrance', 'Santa Fe', 'Sandoval', 'Valencia'] },
-    {'identifier': 'W5N/SL', 'name': 'Sierra Lucero Range',             'type': 'concave-hull' }, # 'counties': ['Cibola', 'Socorro', 'Valencia'] },
-    {'identifier': 'W5N/SM', 'name': 'San Mateo Mountains',             'type': 'concave-hull' }, # 'counties': ['Cibola', 'McKinley', 'Sandoval'] },
-    {'identifier': 'W5N/SR', 'name': 'San Andres Mountains',            'type': 'concave-hull' }, # 'counties': ['Doña Ana', 'Sierra'] },
-    {'identifier': 'W5N/SS', 'name': 'Sangre De Cristo Mountains',      'type': 'concave-hull' }, # 'counties': ['Taos', 'Mora', 'Colfax', 'Rio Arriba'] },
-
-    # W5O: 7 regions, 77 counties
-    # counties not in any region: (?)
-    # regions overlaying other regions: (none)
-    # split counties: (many)
-    {'identifier': 'W5O/BS', 'name': 'Brushy Mountains',            'type': 'concave-hull' },
-    {'identifier': 'W5O/KI', 'name': 'Kiamichi Mountains',          'type': 'concave-hull' },
-    {'identifier': 'W5O/OU', 'name': 'Ouachita National Forest',    'type': 'concave-hull' },
-    {'identifier': 'W5O/QA', 'name': 'Quartz Mountains SP',         'type': 'concave-hull' },
-    {'identifier': 'W5O/SO', 'name': 'Sans Bois Mountains',         'type': 'concave-hull' },
-    {'identifier': 'W5O/WI', 'name': 'Wichita Mountains',           'type': 'concave-hull' },
-    {'identifier': 'W5O/WO', 'name': 'White Oak Mountains',         'type': 'concave-hull' },
-
-    # W5T: 26 regions, 254 counties
-    # counties not in any region: (?)
-    # regions overlaying other regions: (none)
-    # split counties: (none)
-    {'identifier': 'W5T/BG', 'name': 'Bullis Gap Mountains',    'type': 'concave-hull' },
-    {'identifier': 'W5T/BO', 'name': 'Bofecillos Mountains',    'type': 'concave-hull' },
-    {'identifier': 'W5T/CE', 'name': 'Cienega Mountains',       'type': 'concave-hull' },
-    {'identifier': 'W5T/CH', 'name': 'Chinati Mountains',       'type': 'concave-hull' },
-    {'identifier': 'W5T/CI', 'name': 'Chisos Mountains',        'type': 'concave-hull' },
-    {'identifier': 'W5T/CR', 'name': 'Christmas Mountains',     'type': 'concave-hull' },
-    {'identifier': 'W5T/DE', 'name': 'Davis Mountains East',    'type': 'concave-hull' },
-    {'identifier': 'W5T/DH', 'name': 'Dead Horse Mountains',    'type': 'concave-hull' },
-    {'identifier': 'W5T/DN', 'name': 'Del Norte Mountains',     'type': 'concave-hull' },
-    {'identifier': 'W5T/DW', 'name': 'Davis Mountains West',    'type': 'concave-hull' },
-    {'identifier': 'W5T/EA', 'name': 'Eagle Mountains',         'type': 'concave-hull' },
-    {'identifier': 'W5T/EF', 'name': 'Eastern Texas Flatlands', 'type': 'concave-hull' },
-    {'identifier': 'W5T/FR', 'name': 'Franklin Mountains',      'type': 'concave-hull' },
-    {'identifier': 'W5T/GL', 'name': 'Glass Mountains',         'type': 'concave-hull' },
-    {'identifier': 'W5T/GU', 'name': 'Guadalupe Mountains',     'type': 'concave-hull' },
-    {'identifier': 'W5T/HA', 'name': 'Haymond Mountains',       'type': 'concave-hull' },
-    {'identifier': 'W5T/PB', 'name': 'Pena Blanca Mountains',   'type': 'concave-hull' },
-    {'identifier': 'W5T/PU', 'name': 'Puertecita Mountains',    'type': 'concave-hull' },
-    {'identifier': 'W5T/QU', 'name': 'Quitman Mountains',       'type': 'concave-hull' },
-    {'identifier': 'W5T/SB', 'name': 'Study Butte',             'type': 'concave-hull' },
-    {'identifier': 'W5T/SD', 'name': 'Sierra Diablo Mountains', 'type': 'concave-hull' },
-    {'identifier': 'W5T/SN', 'name': 'Santiago Mountains',      'type': 'concave-hull' },
-    {'identifier': 'W5T/SV', 'name': 'Sierra Vieja Mountains',  'type': 'concave-hull' },
-    {'identifier': 'W5T/VH', 'name': 'Van Horn Mountains',      'type': 'concave-hull' },
-
     {'identifier': 'W5T/NT', 'name': 'North Texas',             'counties': ['TX_Crockett', 'TX_Val Verde', 'TX_Upton', 'TX_Armstrong', 'TX_Newton', 'TX_Stonewall', 'TX_Kent', 'TX_Scurry', 'TX_Young', 'TX_Palo Pinto', 'TX_Callahan', 'TX_Taylor', 'TX_Runnels', 'TX_Coke', 'TX_Llano', 'TX_Blanco', 'TX_Reeves'] },
     {'identifier': 'W5T/ST', 'name': 'South Texas',             'counties': ['TX_Webb', 'TX_Kinney', 'TX_Edwards', 'TX_Real', 'TX_Bandera', 'TX_Uvalde', 'TX_Medina'] },
 
-    # W1: 13 regions, 5 states, CT: 8 counties / MA: 14 counties / VT: 14 counties / NH: 10 counties / ME: 16 counties
-    # counties not in any region: (VT: Grand Isle, others: ?)
-    # regions overlaying other regions: (none)
-    # split counties: Penobscot, Aroostook, Hancock,      Carroll, Grafton, Belknap, Merrimack, Rockingham      Orleans, Caledonia, Essex      Hampden, Franklin     Capitol
-    # # Maine
-    # {'identifier': 'AM', 'name': 'Appalachian Mountains',       'counties': ['York', 'Oxford', 'Cumberland', 'Androscoggin', 'Franklin', 'Somerset', 'Kennebec', 'Penobscot', 'Piscataquis', 'Aroostook'] },
-    # {'identifier': 'EM', 'name': 'Eastern Maine',               'counties': ['Knox', 'Waldo', 'Penobscot', 'Hancock', 'Washington', 'Aroostook'] },
-    # {'identifier': 'DI', 'name': 'Desert Island',               'counties': ['Hancock'] },
-    # # New Hampshire
-    # {'identifier': 'HA', 'name': 'New Hampshire Appalachians',  'counties': ['Cheshire', 'Hillsborough', 'Sullivan', 'Merrimack', 'Grafton', 'Belknap', 'Carroll', 'Coos'] },
-    # {'identifier': 'NL', 'name': 'New Hampshire Lakes',         'counties': ['Carroll', 'Grafton', 'Belknap', 'Merrimack', 'Rockingham', 'Strafford'] },
-    # {'identifier': 'MV', 'name': 'Merrimack Valley',            'counties': ['Merrimack', 'Hillsborough', 'Rockingham'] },
-    # # Vermont
-    # {'identifier': 'GM', 'name': 'Green Mountains',             'counties': ['Bennington', 'Windham', 'Windsor', 'Rutland', 'Addison', 'Orange', 'Washington', 'Caledonia', 'Chittenden', 'Lamoille', 'Franklin', 'Orleans', 'Essex'] },
-    # {'identifier': 'NK', 'name': 'Northeast Kingdom',           'counties': ['Orleans', 'Caledonia', 'Essex'] },
-    # # Massachusetts
-    # {'identifier': 'MB', 'name': 'Massachusetts Berkshires',    'counties': ['Berkshire', 'Franklin', 'Hampden'] },
-    # {'identifier': 'CR', 'name': 'Connecticut River',           'counties': ['Hampden', 'Hampshire', 'Franklin', 'Worcester'] },
-    # # Connecticut
-    # {'identifier': 'CB', 'name': 'Connecticut Berkshires',      'counties': ['Northwest Hills', 'Western Connecticut'] },
-    # {'identifier': 'MR', 'name': 'Metacomet Ridge',             'counties': ['Capitol'] },
-    # {'identifier': 'HH', 'name': 'Hanging Hills',               'counties': ['Capitol', 'South Central Connecticut', 'Lower Connecticut River Valley'] },
-    # Maine
-    {'identifier': 'W1/AM', 'name': 'Appalachian Mountains',        'type': 'concave-hull' },
-    {'identifier': 'W1/EM', 'name': 'Eastern Maine',                'type': 'concave-hull' },
-    {'identifier': 'W1/DI', 'name': 'Desert Island',                'type': 'concave-hull' },
-    # New Hampshire
-    {'identifier': 'W1/HA', 'name': 'New Hampshire Appalachians',   'type': 'concave-hull' },
-    {'identifier': 'W1/NL', 'name': 'New Hampshire Lakes',          'type': 'concave-hull' },
-    {'identifier': 'W1/MV', 'name': 'Merrimack Valley',             'type': 'concave-hull' },
-    # Vermont
     {'identifier': 'W1/GM', 'name': 'Green Mountains', 'type': 'state', 'state': 'VT' },
     {'identifier': 'W1/NK', 'name': 'Northeast Kingdom',            'type': 'concave-hull' },
-    # Massachusetts
-    {'identifier': 'W1/MB', 'name': 'Massachusetts Berkshires',     'type': 'concave-hull' },
-    {'identifier': 'W1/CR', 'name': 'Connecticut River',            'type': 'concave-hull' },
-    # Connecticut
-    {'identifier': 'W1/CB', 'name': 'Connecticut Berkshires',       'type': 'concave-hull' },
-    {'identifier': 'W1/MR', 'name': 'Metacomet Ridge',              'type': 'concave-hull' },
-    {'identifier': 'W1/HH', 'name': 'Hanging Hills',                'type': 'concave-hull' },
-
-    # W7O: 10 regions, 36 counties
-    # counties not in any region: ?
-    # regions overlaying other regions: ?
-    # split counties: (many)
-    {'identifier': 'W7O/CC', 'name': 'OR-Central Coast',        'type': 'concave-hull' },
-    {'identifier': 'W7O/CE', 'name': 'OR-Central Oregon',       'type': 'concave-hull' },
-    {'identifier': 'W7O/CM', 'name': 'OR-Cascades Middle',      'type': 'concave-hull' },
-    {'identifier': 'W7O/CN', 'name': 'OR-Cascades North',       'type': 'concave-hull' },
-    {'identifier': 'W7O/CS', 'name': 'OR-Cascades South',       'type': 'concave-hull' },
-    {'identifier': 'W7O/NC', 'name': 'OR-North Coastal',        'type': 'concave-hull' },
-    {'identifier': 'W7O/NE', 'name': 'OR-Northeast',            'type': 'concave-hull' },
-    {'identifier': 'W7O/SC', 'name': 'OR-South Coastal',        'type': 'concave-hull' },
-    {'identifier': 'W7O/SE', 'name': 'OR-Southeast',            'type': 'concave-hull' },
-    {'identifier': 'W7O/WV', 'name': 'OR-Willamette Valley',    'type': 'concave-hull' },
 
     # W0C: 14 regions, 64 counties
     # counties not in any region: (none)
@@ -692,7 +542,28 @@ regions = [
     {'identifier': 'W4T/RV', 'name': 'Ridge and Valley',                    'counties': ['TN_Hamilton', 'TN_Rhea', 'TN_Anderson', 'TN_Roane', 'TN_Knox', 'TN_Claiborne', 'TN_Union', 'TN_Grainger', 'TN_Hancock', 'TN_Hamblen', 'TN_Hawkins', 'TN_Sullivan'] },
     {'identifier': 'W4T/SU', 'name': 'Smoky and Unaka Mountains',           'counties': ['TN_Polk', 'TN_Monroe', 'TN_Blount', 'TN_Sevier', 'TN_Cocke', 'TN_Greene', 'TN_Washington', 'TN_Unicoi', 'TN_Carter', 'TN_Johnson'] },
 
-]
+] # regions
+
+voronoi_assocs = [
+
+    {'identifier': 'W5A', 'regions': ['BR', 'CA', 'CS', 'MA', 'OA', 'OH', 'OZ', 'PT'], 'boundary': {'type': 'counties', 'counties': ['AR_Benton', 'AR_Carroll', 'AR_Boone', 'AR_Newton', 'AR_Madison', 'AR_Searcy', 'AR_Stone', 'AR_Izard', 'AR_Franklin', 'AR_Johnson', 'AR_Van Buren', 'AR_Pope', 'AR_Conway', 'AR_Yell', 'AR_Logan', 'AR_Pulaski', 'AR_Saline', 'AR_Perry', 'AR_Sebastian', 'AR_Scott', 'AR_Garland', 'AR_Montgomery', 'AR_Polk', 'AR_Pike']} },
+
+    {'identifier': 'W5O', 'regions': ['QA', 'WI'], 'boundary': {'type': 'counties', 'counties': ['OK_Greer', 'OK_Kiowa', 'OK_Jackson', 'OK_Comanche']} },
+    {'identifier': 'W5O', 'regions': ['BS', 'KI', 'OU', 'SO', 'WO'], 'boundary': {'type': 'counties', 'counties': ['OK_Murray', 'OK_Pontotoc', 'OK_Adair', 'OK_Cherokee', 'OK_Sequoyah', 'OK_Muskogee', 'OK_Haskell', 'OK_Pittsburg', 'OK_Latimer', 'OK_Le Flore', 'OK_Atoka', 'OK_Pushmataha', 'OK_McCurtain']} },
+
+    {'identifier': 'W5T', 'regions': ['BG', 'BO', 'CE', 'CH', 'CI', 'CR', 'DE', 'DH', 'DN', 'DW', 'EA', 'EF', 'FR', 'GL', 'GU', 'HA', 'PB', 'PU', 'QU', 'SB', 'SD', 'SN', 'SV', 'VH'], 'boundary': {'type': 'counties', 'counties': ['TX_El Paso', 'TX_Hudspeth', 'TX_Culberson', 'TX_Jeff Davis', 'TX_Presidio', 'TX_Brewster', 'TX_Pecos']} },
+
+    {'identifier': 'W5N', 'regions': ['AI', 'AP', 'BA', 'BL', 'BU', 'CB', 'CC', 'CD', 'CM', 'CN', 'CO', 'CU', 'DA', 'EL', 'FL', 'GF', 'GW', 'HT', 'MG', 'MI', 'MO', 'NL', 'OR', 'OT', 'PA', 'PL', 'PO', 'PW', 'RO', 'SC', 'SE', 'SG', 'SI', 'SL', 'SM', 'SR', 'SS'], 'boundary': {'type': 'counties', 'counties': ['NM_San Juan', 'NM_Rio Arriba', 'NM_Sandoval', 'NM_McKinley', 'NM_Cibola', 'NM_Bernalillo', 'NM_Valencia', 'NM_Catron', 'NM_Socorro', 'NM_Sierra', 'NM_Grant', 'NM_Hidalgo', 'NM_Luna', 'NM_Doña Ana', 'NM_Otero', 'NM_Chaves', 'NM_Lincoln', 'NM_Torrance', 'NM_Los Alamos', 'NM_Santa Fe', 'NM_Taos', 'NM_Colfax', 'NM_Union', 'NM_Harding', 'NM_Mora', 'NM_San Miguel', 'NM_Guadalupe', 'NM_Quay', 'NM_Eddy']} },
+
+    {'identifier': 'W7O', 'regions': ['CC', 'CE', 'CM', 'CN', 'CS', 'NC', 'NE', 'SC', 'SE', 'WV'], 'boundary': {'type': 'state', 'state': 'OR'} },
+
+    {'identifier': 'W1', 'regions': ['AM', 'EM', 'DI'], 'boundary': {'type': 'state', 'state': 'ME'} },
+    {'identifier': 'W1', 'regions': ['HA', 'NL', 'MV'], 'boundary': {'type': 'state', 'state': 'NH'} },
+    # {'identifier': 'W1', 'regions': ['GM', 'NK'], 'boundary': {'type': 'state', 'state': 'VT'} },
+    {'identifier': 'W1', 'regions': ['MB', 'CR'], 'boundary': {'type': 'state', 'state': 'MA'} },
+    {'identifier': 'W1', 'regions': ['CB', 'MR', 'HH'], 'boundary': {'type': 'state', 'state': 'CT'} },
+
+] # voronoi_assocs
 
 for ft in cgj["features"]:
     county_name = ft["properties"]["STUSPS"] + "_" + ft["properties"]["NAME"]
@@ -799,6 +670,80 @@ def handle_morecounties(regionfeature, regiondef):
     regionfeature["geometry"] = shapely.geometry.mapping(rgshp)
 
 
+def construct_voronoi(partdef):
+    print()
+    print(f"voronoi {partdef['identifier']}")
+    counties_list = []
+    region_summits = {}
+
+    if "type" in partdef['boundary'] and partdef['boundary']['type'] == "state":
+        state = partdef['boundary']['state']
+        counties_list = [x for x in counties_dict.keys() if x.split('_')[0] == state]
+    elif "type" in partdef['boundary'] and partdef['boundary']['type'] == "counties":
+        counties_list = partdef['boundary']['counties']
+    else:
+        print("don't know how to handle this voronoi assoc, quitting!")
+        exit(1)
+
+    blank = {"type": "Polygon", "coordinates": []}
+    bnd_shp = shapely.geometry.shape(blank)
+
+    for county_name in counties_list:
+        countyshp = shapely.geometry.shape(counties_dict[county_name]["geometry"])
+        # print(f"about to merge {region['name']} with {county_name}")
+        bnd_shp = shapely.coverage_union(bnd_shp, countyshp)
+
+    latlonlist = []
+    # IMPORTANT: this iteration occurs in the order we originally specified the regions
+    for region in partdef['regions']:
+        print(region)
+        rgrows = []
+        def is_region(row):
+            sass = row['SummitCode'].split('-')[0]
+            sass, sreg = sass.split('/')
+            if sass == partdef['identifier'] and sreg == region:
+                vf = datetime.date.strptime(row['ValidFrom'], "%d/%m/%Y")
+                vt = datetime.date.strptime(row['ValidTo'], "%d/%m/%Y")
+                dt = datetime.date.today()
+                return dt < vt and dt > vf
+            return False
+        with open(sys.argv[2], 'r') as sf:
+            rd = csv.DictReader(sf)
+
+            for row in filter(is_region, rd):
+                # print(row['SummitCode'])
+                rgrows.append(row)
+        region_summits[region] = rgrows
+
+        # IMPORTANT: this operation preserves order, so that all summits from the same region occur together in one block
+        latlonlist.extend([(row['Longitude'], row['Latitude']) for row in rgrows])
+
+    # IMPORTANT: this operation preserves order
+    mp = shapely.MultiPoint(latlonlist)
+    
+    # IMPORTANT: maintain ordering
+    vout = shapely.voronoi_polygons(mp, ordered=True)
+
+    idx = 0
+    # IMPORTANT: this iteration occurs in the same order as the first time we iterated through the regions
+    for region in partdef['regions']:
+        numsummits = len(region_summits[region])
+        # IMPORTANT: because we have maintained ordering to this point, we can simply use an index range to collect all individual polygons that belong to a single region
+        polygons = vout.geoms[idx:idx+numsummits]
+        # dissolve polygons-for-each-summit into minimal polygon (or multi-polygon) for the region
+        cov = shapely.coverage_union_all(polygons)
+        # typically the resulting voronoi polygons extend out super far, cut them off at the boundary specified for the association
+        cov = shapely.intersection(cov, bnd_shp)
+
+        rgft = copy.deepcopy(feature_template)
+        rgft["geometry"] = shapely.geometry.mapping(cov)
+        rgft["properties"]["identifier"] = partdef['identifier'] + '/' + region
+        gj_template["features"].append(rgft)
+
+        idx += numsummits
+
+
+
 
 for regiondef in regions:
     rgft = copy.deepcopy(feature_template)
@@ -821,6 +766,11 @@ for regiondef in regions:
         handle_morecounties(rgft, regiondef)
 
     gj_template["features"].append(rgft)
+
+for partdef in voronoi_assocs:
+    construct_voronoi(partdef)
+
+
 
 
 with open(sys.argv[3], 'w') as outf:
