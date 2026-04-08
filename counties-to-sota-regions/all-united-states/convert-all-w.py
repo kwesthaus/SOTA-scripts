@@ -47,7 +47,7 @@ counties_dict = {}
 # 6th call district: 1 state, 1 region
 # 7th call district: 8 states, 8 regions
 # 8th call district: 3 states, 3 regions
-# KLA
+# KLA, KLF, KLS
 # KH6
 
 ## CALL AREAS - MIX OF BOTH
@@ -65,7 +65,7 @@ counties_dict = {}
 # 2 todo, 25 work with counties, 8 special
 
 ## (2) TODO
-# KLA
+# KLA/KLF/KLS
 # KH6
 
 ## (19) ARM lists counties in region description or has county-based region map in ARM
